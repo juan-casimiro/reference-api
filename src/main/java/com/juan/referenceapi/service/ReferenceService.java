@@ -24,7 +24,7 @@ public class ReferenceService {
     }
 
     public List<ReferenceResponse> findAll() {
-        return repository.findAll()
+        return repository.findAllWithJournal()
                 .stream()
                 .map(this::toResponse)
                 .toList();
