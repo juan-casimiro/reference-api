@@ -1,7 +1,9 @@
 package com.juan.referenceapi.model;
 
 import jakarta.persistence.*;
-import jakarta.validation.constraints.*;
+import jakarta.validation.constraints.Max;
+import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotBlank;
 
 @Entity
 @Table(name = "academic_references")
@@ -17,8 +19,9 @@ public class Reference {
     @NotBlank(message = "Authors is required")
     private String authors;
 
-    @NotBlank(message = "Journal is required")
-    private String journal;
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "journal_id")
+    private Journal journal;
 
     @Min(value = 1900, message = "Year must be after 1900")
     @Max(value = 2100, message = "Year must be realistic")
@@ -33,7 +36,7 @@ public class Reference {
     // constructors
     public Reference() {}
 
-    public Reference(String title, String authors, String journal,
+    public Reference(String title, String authors, Journal journal,
                      int year, int citationCount, boolean openAccess) {
         this.title = title;
         this.authors = authors;
@@ -49,8 +52,13 @@ public class Reference {
     public void setTitle(String title) { this.title = title; }
     public String getAuthors() { return authors; }
     public void setAuthors(String authors) { this.authors = authors; }
-    public String getJournal() { return journal; }
-    public void setJournal(String journal) { this.journal = journal; }
+    public Journal getJournal() {
+        return journal;
+    }
+    public void setJournal(Journal journal) {
+        this.journal = journal;
+    }
+
     public int getYear() { return year; }
     public void setYear(int year) { this.year = year; }
     public int getCitationCount() { return citationCount; }

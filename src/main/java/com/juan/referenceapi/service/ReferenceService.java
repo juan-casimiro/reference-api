@@ -2,8 +2,10 @@ package com.juan.referenceapi.service;
 
 import com.juan.referenceapi.dto.CreateReferenceRequest;
 import com.juan.referenceapi.dto.ReferenceResponse;
-import com.juan.referenceapi.exception.ReferenceNotFoundException;
+import com.juan.referenceapi.exception.ResourceNotFoundException;
+import com.juan.referenceapi.model.Journal;
 import com.juan.referenceapi.model.Reference;
+import com.juan.referenceapi.repository.JournalRepository;
 import com.juan.referenceapi.repository.ReferenceRepository;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,9 +17,10 @@ import java.util.List;
 public class ReferenceService {
 
     private final ReferenceRepository repository;
-
-    public ReferenceService(ReferenceRepository repository) {
+    private final JournalRepository  journalRepository;
+    public ReferenceService(ReferenceRepository repository, JournalRepository journalRepository) {
         this.repository = repository;
+        this.journalRepository = journalRepository;
     }
 
     public List<ReferenceResponse> findAll() {
@@ -30,15 +33,18 @@ public class ReferenceService {
     public ReferenceResponse findById(Long id) {
         return repository.findById(id)
                 .map(this::toResponse)
-                .orElseThrow(() -> new ReferenceNotFoundException(id));
+                .orElseThrow(() -> new ResourceNotFoundException("Reference", id));
     }
 
     @Transactional
     public ReferenceResponse create(CreateReferenceRequest request) {
+        Journal journal = journalRepository.findByIssn(request.journalIssn())
+                .orElseThrow( () -> new ResourceNotFoundException("Journal ISSN", request.journalIssn()));
+
         Reference reference = new Reference(
                 request.title(),
                 request.authors(),
-                request.journal(),
+                journal,
                 request.year(),
                 request.citationCount() != null ? request.citationCount() : 0,
                 Boolean.TRUE.equals(request.openAccess())
@@ -49,7 +55,7 @@ public class ReferenceService {
     @Transactional
     public void delete(Long id) {
         if (!repository.existsById(id)) {
-            throw new ReferenceNotFoundException(id);
+            throw new ResourceNotFoundException("Reference", id);
         }
         repository.deleteById(id);
     }
@@ -59,7 +65,7 @@ public class ReferenceService {
                 ref.getId(),
                 ref.getTitle(),
                 ref.getAuthors(),
-                ref.getJournal(),
+                ref.getJournal().getIssn(),
                 ref.getYear(),
                 ref.getCitationCount(),
                 ref.isOpenAccess()

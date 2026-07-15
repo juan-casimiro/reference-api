@@ -4,7 +4,7 @@ public record ReferenceResponse(
         Long id,
         String title,
         String authors,
-        String journal,
+        String journalIssn,
         int year,
         int citationCount,
         boolean openAccess
